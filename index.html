@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harbourline IT Help</title>
+<meta name="description" content="Offline IT helpdesk assistant: self-service fixes, automatic ticket triage and an SLA queue.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">H</span>
+    <div>
+      <div class="brand-name">Harbourline IT Help</div>
+      <div class="brand-sub">Service desk · Darwin · Palmerston · Katherine · Alice Springs</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-help" aria-controls="view-help" aria-selected="true">Get help</button>
+    <button class="tab" role="tab" id="tab-queue" aria-controls="view-queue" aria-selected="false">Ticket queue <span class="count" id="queueCount"></span></button>
+    <button class="tab" role="tab" id="tab-how" aria-controls="view-how" aria-selected="false">How it works</button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <!-- GET HELP -->
+  <section id="view-help" role="tabpanel" aria-labelledby="tab-help" class="view">
+    <div class="ask">
+      <label for="issue" class="ask-label">Describe the problem in your own words</label>
+      <div class="ask-row">
+        <textarea id="issue" rows="2" placeholder="e.g. Outlook won't send, emails stuck in the outbox"></textarea>
+        <button id="askBtn" class="btn primary">Find a fix</button>
+      </div>
+      <div class="examples" id="examples" aria-label="Example problems"></div>
+    </div>
+
+    <div id="result" class="result" hidden>
+      <div class="triage" id="triage"></div>
+      <div class="fix">
+        <div class="fix-head">
+          <span class="kb-id" id="fixId"></span>
+          <h2 id="fixTitle"></h2>
+        </div>
+        <ol id="fixSteps" class="steps"></ol>
+        <p class="escalate" id="fixEscalate"></p>
+        <div class="others" id="others"></div>
+        <div class="decision">
+          <span>Did this fix it?</span>
+          <button class="btn" id="fixedBtn">Yes, it's fixed</button>
+          <button class="btn primary" id="ticketBtn">No, log a ticket</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="ticketForm" class="ticket-form" hidden>
+      <h2>Log a ticket</h2>
+      <p class="muted">Category and priority were filled in automatically. Change them if they're wrong.</p>
+      <div class="form-grid">
+        <label>Your name<input id="fName" required placeholder="e.g. Sam Taylor"></label>
+        <label>Site
+          <select id="fSite"><option>Darwin CBD</option><option>Palmerston</option><option>Katherine</option><option>Alice Springs</option></select>
+        </label>
+        <label>Category<select id="fCategory"></select></label>
+        <label>Priority<select id="fPriority"></select></label>
+        <label class="full">Description<textarea id="fDesc" rows="3" required></textarea></label>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" id="cancelTicket">Cancel</button>
+        <button type="submit" class="btn primary">Submit ticket</button>
+      </div>
+    </form>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+  </section>
+
+  <!-- QUEUE -->
+  <section id="view-queue" role="tabpanel" aria-labelledby="tab-queue" class="view" hidden>
+    <div class="queue-head">
+      <div>
+        <h2>Open tickets</h2>
+        <p class="muted">Sorted by SLA due time. Sample tickets are marked so you can tell them from ones you logged.</p>
+      </div>
+      <div class="queue-tools">
+        <label class="inline">Show
+          <select id="qFilter"><option value="open">Open</option><option value="all">All</option><option value="breach">At risk or overdue</option></select>
+        </label>
+        <button class="btn" id="resetQueue">Reset samples</button>
+      </div>
+    </div>
+    <div class="kpi-row" id="queueKpis"></div>
+    <div class="table-wrap"><table id="queueTable"></table></div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="view-how" role="tabpanel" aria-labelledby="tab-how" class="view" hidden>
+    <div class="how">
+      <h2>How the assistant works</h2>
+      <p class="lede">Everything runs in your browser. No AI service, no API key, no data leaves the page.</p>
+      <ol class="pipeline">
+        <li><b>Search the knowledge base.</b> Your description is matched against 20 fix articles using BM25, the ranking formula behind most search engines. Rare, specific words count more than common ones.</li>
+        <li><b>Predict the category.</b> A Naive Bayes classifier, trained on 224 labelled example tickets, estimates the most likely of 8 categories and how confident it is.</li>
+        <li><b>Security safety net.</b> Clear security words (phishing, hacked, stolen…) override the model, because a missed security incident costs far more than a false alarm.</li>
+        <li><b>Set the priority.</b> The ITIL impact × urgency matrix turns phrases like "whole office" and "can't work" into P1 to P4, with the same SLA targets as the service desk review.</li>
+      </ol>
+      <h3>How accurate is the category prediction?</h3>
+      <p id="evalSummary"></p>
+      <div class="table-wrap"><table id="evalTable"></table></div>
+      <p class="muted small" id="evalNote"></p>
+      <h3>Priority matrix</h3>
+      <div class="table-wrap"><table id="matrixTable"></table></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  Built by Kritesh Baral · Plain HTML, CSS and JavaScript · Fictional organisation and sample data ·
+  <a href="https://github.com/kriteshbaral/helpdesk-assistant">Source on GitHub</a>
+</footer>
+
+<script src="js/kb.js"></script>
+<script src="js/training.js"></script>
+<script src="js/nlp.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
